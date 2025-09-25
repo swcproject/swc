@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="keywords" content="SWC, Waste, Waste Classifier, Smart Waste Classifier">
+    <meta name="description" content="SWC (Smart Waste Classifier) is an innovative AI-powered solution that combines machine learning with Arduino Uno technology to revolutionize waste classification. Developed by Swapnil Pandey, this cutting-edge system helps users identify and segregate waste intelligently into three categories: Recyclable, Non-Recyclable, and Organic Waste.">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <title>SWC - Smart Waste Classifier</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #2d6e3b;
+            --secondary-color: #4caf50;
+            --accent-color: #66bb6a;
+            --text-color: #333;
+            --light-bg: #f8fffe;
+            --card-bg: #ffffff;
+            --shadow-light: 0 4px 20px rgba(76, 175, 80, 0.1);
+            --shadow-medium: 0 8px 30px rgba(76, 175, 80, 0.15);
+            --gradient: linear-gradient(135deg, #2d6e3b 0%, #4caf50 100%);
+            --recyclable-color: #4caf50;
+            --non-recyclable-color: #f44336;
+            --organic-color: #ff9800;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: var(--light-bg);
+            overflow-x: hidden;
+        }
+
+        /* Header Styles */
+        .header {
+            background: var(--gradient);
+            color: white;
+            text-align: center;
+            padding: 80px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><defs><radialGradient id="a"><stop offset="20%" stop-color="%23ffffff" stop-opacity="0.3"/><stop offset="100%" stop-color="%23ffffff" stop-opacity="0"/></radialGradient></defs><circle fill="url(%23a)" cx="10" cy="10" r="10"/></svg>') repeat;
+            animation: float 20s ease-in-out infinite;
+            opacity: 0.1;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            animation: slideInDown 1s ease-out;
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            font-weight: 300;
+            animation: slideInUp 1s ease-out 0.3s both;
+        }
+
+        @keyframes slideInDown {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Section Styles */
+        .section {
+            padding: 80px 0;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: var(--gradient);
+            border-radius: 2px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 40px;
+            margin: 30px 0;
+            box-shadow: var(--shadow-light);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        /* Model Section */
+        .model-section {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 60px 40px;
+            box-shadow: var(--shadow-medium);
+            text-align: center;
+            margin: 50px auto;
+        }
+
+        .model-title {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+        }
+
+        /* Button Styles */
+        .btn {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            margin: 10px;
+            min-width: 200px;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn.secondary {
+            background: linear-gradient(135deg, #666, #888);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Input Container */
+        .input-container {
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff9800, #ffb74d);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 10px;
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 152, 0, 0.3);
+        }
+
+        /* Webcam Container */
+        #webcam-container {
+            margin: 30px 0;
+            text-align: center;
+            position: relative;
+        }
+
+        #webcam-container canvas,
+        #image-preview {
+            border-radius: 15px;
+            box-shadow: var(--shadow-medium);
+            transition: all 0.3s ease;
+            max-width: 100%;
+            height: auto;
+            max-height: 400px;
+        }
+
+        #webcam-container canvas:hover,
+        #image-preview:hover {
+            transform: scale(1.02);
+        }
+
+        #image-preview {
+            display: none;
+        }
+
+        /* Label Container - Enhanced for 3 categories */
+        #label-container {
+            margin-top: 30px;
+            display: grid;
+            gap: 20px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .prediction-item {
+            background: var(--card-bg);
+            padding: 20px 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-light);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-left: 5px solid var(--accent-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .prediction-item.recyclable {
+            border-left-color: var(--recyclable-color);
+        }
+
+        .prediction-item.non-recyclable {
+            border-left-color: var(--non-recyclable-color);
+        }
+
+        .prediction-item.organic {
+            border-left-color: var(--organic-color);
+        }
+
+        .prediction-item:hover {
+            transform: translateX(10px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .prediction-item.top-prediction {
+            background: linear-gradient(135deg, #e8f5e8, #f1f8e9);
+            border: 2px solid var(--secondary-color);
+            transform: scale(1.02);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: var(--shadow-light); }
+            50% { box-shadow: var(--shadow-medium); }
+        }
+
+        .prediction-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .prediction-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .prediction-emoji {
+            font-size: 1.5rem;
+        }
+
+        .confidence-bar {
+            background: #e8f5e8;
+            border-radius: 10px;
+            height: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .confidence-fill.recyclable {
+            background: linear-gradient(90deg, var(--recyclable-color), #66bb6a);
+        }
+
+        .confidence-fill.non-recyclable {
+            background: linear-gradient(90deg, var(--non-recyclable-color), #ef5350);
+        }
+
+        .confidence-fill.organic {
+            background: linear-gradient(90deg, var(--organic-color), #ffb74d);
+        }
+
+        .confidence-text {
+            font-size: 0.9rem;
+            color: #666;
+            text-align: center;
+        }
+
+        /* Camera Permission Helper */
+        .camera-help {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .camera-help h4 {
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .camera-help ol {
+            margin-left: 20px;
+        }
+
+        .camera-help li {
+            margin: 5px 0;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(76, 175, 80, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s ease-in-out infinite;
+            margin: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Status Messages */
+        .status-message {
+            padding: 20px 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        .status-loading {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 2px solid #bbdefb;
+        }
+
+        .status-success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 2px solid #c8e6c9;
+        }
+
+        .status-error {
+            background: #ffebee;
+            color: #c62828;
+            border: 2px solid #ffcdd2;
+        }
+
+        /* FAQ Section */
+        .faq-item {
+            margin: 25px 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 25px;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .faq-question i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .faq-answer {
+            color: var(--text-color);
+            line-height: 1.7;
+            padding-left: 30px;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 60px 20px 40px;
+            margin-top: 80px;
+        }
+
+        .contact-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .thank-you {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-top: 40px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* Icons */
+        .icon {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+        }
+
+        /* Categories Legend */
+        .categories-legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .category-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: var(--card-bg);
+            border-radius: 25px;
+            box-shadow: var(--shadow-light);
+            font-weight: 500;
+        }
+
+        .category-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+
+        .category-color.recyclable { background: var(--recyclable-color); }
+        .category-color.non-recyclable { background: var(--non-recyclable-color); }
+        .category-color.organic { background: var(--organic-color); }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2.5rem; }
+            .section { padding: 60px 0; }
+            .section-title { font-size: 2rem; }
+            .card { padding: 30px 20px; }
+            .model-section { padding: 40px 20px; }
+            .btn { padding: 12px 25px; font-size: 1rem; min-width: 180px; }
+            .categories-legend { flex-direction: column; align-items: center; }
+            .prediction-item { padding: 15px 20px; }
+        }
+
+        /* Scroll Animation */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="header">
+        <div class="container">
+            <h1><i class="fas fa-recycle"></i> SWC</h1>
+            <p class="subtitle">Smart Waste Classifier - Making India Sustainable Through AI <br> by <b>Swapnil Pandey</b></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- About Section -->
+        <section class="section fade-in">
+            <div class="card">
+                <div class="icon"><i class="fas fa-lightbulb"></i></div>
+                <h2 class="section-title">About SWC</h2>
+                <p style="font-size: 1.1rem; text-align: center; line-height: 1.8;">
+                    SWC (Smart Waste Classifier) is an innovative AI-powered solution that combines machine learning with Arduino Uno technology to revolutionize waste classification. Developed by <strong>Swapnil Pandey</strong>, this cutting-edge system helps users identify and segregate waste intelligently into three categories: <strong>Recyclable</strong>, <strong>Non-Recyclable</strong>, and <strong>Organic Waste</strong>.
+                </p>
+            </div>
+        </section>
+
+        <!-- Vision Section -->
+        <section class="section fade-in">
+            <div class="card">
+                <div class="icon"><i class="fas fa-eye"></i></div>
+                <h2 class="section-title">Our Vision</h2>
+                <p style="font-size: 1.1rem; text-align: center; line-height: 1.8;">
+                    Our vision is to transform India into a nation where every citizen is educated about waste management and empowered to segregate waste effectively. We believe in fostering <em>"Sustainable Development"</em> through technology, creating a cleaner tomorrow for future generations.
+                </p>
+            </div>
+        </section>
+
+        <!-- Model Section -->
+        <section class="section fade-in">
+            <div class="model-section">
+                <h2 class="model-title"><i class="fas fa-brain"></i> AI Waste Classification Model</h2>
+                <p style="margin-bottom: 30px; font-size: 1.1rem;">Experience the power of artificial intelligence in waste segregation. Our model classifies waste into three distinct categories with high accuracy.</p>
+                
+                <!-- Categories Legend -->
+                <div class="categories-legend">
+                    <div class="category-item">
+                        <div class="category-color recyclable"></div>
+                        <span>🌱 Recyclable</span>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-color non-recyclable"></div>
+                        <span>🚫 Non-Recyclable</span>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-color organic"></div>
+                        <span>🍃 Organic Waste</span>
+                    </div>
+                </div>
+                
+                <div id="status-container"></div>
+                
+                <!-- Button Container -->
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 20px 0;">
+                    <button type="button" class="btn" onclick="initCamera()" id="camera-btn">
+                        <i class="fas fa-video"></i> Use Camera
+                    </button>
+                    <label for="file-input" class="file-input-label">
+                        <i class="fas fa-upload"></i> Upload Image
+                    </label>
+                    <input type="file" id="file-input" class="file-input" accept="image/*" onchange="handleFileSelect(event)">
+                </div>
+                
+                <!-- Camera Permission Help -->
+                <div id="camera-help" class="camera-help" style="display: none;">
+                    <h4><i class="fas fa-info-circle"></i> Camera Access Required</h4>
+                    <p>To use the camera for real-time classification:</p>
+                    <ol>
+                        <li>Click "Allow" when prompted for camera permission</li>
+                        <li>If blocked, click the camera icon in your browser's address bar</li>
+                        <li>Enable camera access and refresh the page</li>
+                        <li>Alternatively, use "Upload Image" to classify photos</li>
+                    </ol>
+                </div>
+                
+                <div id="webcam-container"></div>
+                <img id="image-preview" alt="Image preview">
+                <div id="label-container"></div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="section fade-in">
+            <h2 class="section-title"><i class="fas fa-question-circle"></i> Frequently Asked Questions</h2>
+            <div class="card">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <i class="fas fa-camera"></i>
+                        Camera not working?
+                    </div>
+                    <div class="faq-answer">
+                        If camera access is blocked, you can still use the model by uploading images! Click "Upload Image" and select a photo from your device. The AI will classify it instantly. For camera access, check your browser permissions and allow camera use.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <i class="fas fa-home"></i>
+                        Should I use this model for waste segregation at home?
+                    </div>
+                    <div class="faq-answer">
+                        Absolutely! This model is designed to help households segregate waste correctly into Recyclable, Non-Recyclable, and Organic categories. Use it as a learning tool to understand proper waste classification and contribute to environmental sustainability.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <i class="fas fa-chart-line"></i>
+                        How accurate is this model?
+                    </div>
+                    <div class="faq-answer">
+                        Our model achieves high accuracy through training on over 22,000 diverse waste images across all three categories. While highly reliable, we recommend using it as a helpful guide alongside your knowledge of local waste management guidelines.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <i class="fas fa-mobile-alt"></i>
+                        Does it work on mobile devices?
+                    </div>
+                    <div class="faq-answer">
+                        Yes! Our responsive design ensures the classifier works seamlessly on smartphones, tablets, and desktop computers. Both camera and image upload work perfectly on mobile devices.
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="contact-info">
+                <h3><i class="fas fa-envelope"></i> Have Suggestions?</h3>
+                <p>We'd love to hear from you! Contact us at:</p>
+                <a href="mailto:suggestions.swc@gmail.com" style="color: #66bb6a; text-decoration: none; font-weight: 600;">
+                    suggestions.swc@gmail.com
+                </a>
+            </div>
+            
+            <div class="thank-you">
+                <i class="fas fa-heart"></i> Thank you for visiting SWC!<br>
+                <span style="font-size: 1rem; font-weight: 400;">May your day be filled with joy and sustainable choices.</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Load TensorFlow.js and Teachable Machine libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
+    <script type="text/javascript">
+        // IMPORTANT: Replace this with your actual model URL
+        const URL = "https://teachablemachine.withgoogle.com/models/QDGkyOOko/";
+        
+        let model, webcam, labelContainer, maxPredictions;
+        let isModelLoaded = false;
+        let isPredicting = false;
+        let isWebcamReady = false;
+        let currentMode = 'none'; // 'camera' or 'image'
+        
+        // Waste categories with their properties
+        const wasteCategories = {
+            0: { name: "Recyclable", class: "recyclable", emoji: "🌱", color: "#4caf50" },
+            1: { name: "Non-Recyclable", class: "non-recyclable", emoji: "🚫", color: "#f44336" },
+            2: { name: "Organic Waste", class: "organic", emoji: "🍃", color: "#ff9800" }
+        };
+        
+        // Status management
+        function showStatus(message, type = 'loading') {
+            const statusContainer = document.getElementById('status-container');
+            const cameraBtn = document.getElementById('camera-btn');
+            
+            let iconHtml = '';
+            switch (type) {
+                case 'loading':
+                    iconHtml = '<div class="loading"></div>';
+                    cameraBtn.disabled = true;
+                    break;
+                case 'success':
+                    iconHtml = '<i class="fas fa-check-circle" style="color: #4caf50; font-size: 1.5rem; margin-right: 10px;"></i>';
+                    cameraBtn.disabled = false;
+                    break;
+                case 'error':
+                    iconHtml = '<i class="fas fa-exclamation-triangle" style="color: #f44336; font-size: 1.5rem; margin-right: 10px;"></i>';
+                    cameraBtn.disabled = false;
+                    cameraBtn.innerHTML = '<i class="fas fa-redo"></i> Retry Camera';
+                    break;
+            }
+            
+            statusContainer.innerHTML = `
+                <div class="status-message status-${type}">
+                    ${iconHtml}${message}
+                </div>
+            `;
+        }
+        
+        // Load model only (without camera)
+        async function loadModel() {
+            try {
+                showStatus('🤖 Loading AI model...', 'loading');
+                
+                // Check if libraries are loaded
+                if (typeof tf === 'undefined') {
+                    throw new Error('TensorFlow.js library not loaded');
+                }
+                
+                if (typeof tmImage === 'undefined') {
+                    throw new Error('Teachable Machine library not loaded');
+                }
+                
+                // Initialize TensorFlow.js
+                await tf.ready();
+                
+                // Try to set optimal backend
+                try {
+                    await tf.setBackend('webgl');
+                } catch (backendError) {
+                    await tf.setBackend('cpu');
+                }
+                
+                // Load the model
+                const modelURL = URL + "model.json";
+                const metadataURL = URL + "metadata.json";
+                
+                // Test URLs
+                const modelTest = await fetch(modelURL, { method: 'HEAD' });
+                const metadataTest = await fetch(metadataURL, { method: 'HEAD' });
+                
+                if (!modelTest.ok || !metadataTest.ok) {
+                    throw new Error('Model files not accessible. Please check if the model URL is correct and public.');
+                }
+                
+                model = await tmImage.load(modelURL, metadataURL);
+                maxPredictions = model.getTotalClasses();
+                
+                if (maxPredictions !== 3) {
+                    console.warn(`Expected 3 classes but got ${maxPredictions}`);
+                }
+                
+                // Warm up the model
+                const warmupCanvas = document.createElement('canvas');
+                warmupCanvas.width = 224;
+                warmupCanvas.height = 224;
+                const warmupCtx = warmupCanvas.getContext('2d');
+                warmupCtx.fillStyle = '#000000';
+                warmupCtx.fillRect(0, 0, 224, 224);
+                
+                const warmupResult = await model.predict(warmupCanvas);
+                if (Array.isArray(warmupResult)) {
+                    warmupResult.forEach(tensor => {
+                        if (tensor.dispose) tensor.dispose();
+                    });
+                }
+                
+                isModelLoaded = true;
+                setupPredictionDisplay();
+                
+                showStatus('🎉 Model ready! Choose camera or upload an image to classify waste.', 'success');
+                
+            } catch (error) {
+                console.error('Model loading error:', error);
+                
+                let errorMessage = '❌ Failed to load AI model. ';
+                if (error.message.includes('model.json') || error.message.includes('metadata.json')) {
+                    errorMessage += 'Model files not found. Please check if the model URL is correct and public.';
+                } else if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
+                    errorMessage += 'Network error. Please check your internet connection.';
+                } else {
+                    errorMessage += `Please refresh and try again. Error: ${error.message}`;
+                }
+                
+                showStatus(errorMessage, 'error');
+            }
+        }
+        
+        // Initialize camera
+        async function initCamera() {
+            if (!isModelLoaded) {
+                await loadModel();
+                if (!isModelLoaded) return;
+            }
+            
+            try {
+                showStatus('📷 Setting up camera...', 'loading');
+                
+                // Hide file input elements
+                document.getElementById('image-preview').style.display = 'none';
+                document.getElementById('camera-help').style.display = 'none';
+                
+                currentMode = 'camera';
+                
+                // Check if webcam is already initialized
+                if (webcam) {
+                    webcam.stop();
+                    const webcamContainer = document.getElementById("webcam-container");
+                    if (webcam.canvas && webcam.canvas.parentNode) {
+                        webcam.canvas.parentNode.removeChild(webcam.canvas);
+                    }
+                }
+                
+                // Setup new webcam
+                const flip = true;
+                webcam = new tmImage.Webcam(320, 320, flip);
+                
+                // Try different camera setups
+                try {
+                    // Try with specific constraints first
+                    await webcam.setup({
+                        video: {
+                            width: { ideal: 320 },
+                            height: { ideal: 320 },
+                            facingMode: { ideal: 'environment' }
+                        }
+                    });
+                } catch (constraintsError) {
+                    console.warn('Camera setup with constraints failed:', constraintsError);
+                    try {
+                        // Try basic setup
+                        await webcam.setup();
+                    } catch (basicError) {
+                        console.warn('Basic camera setup failed:', basicError);
+                        throw new Error(`Camera access denied or not available. Please allow camera permissions or use image upload instead. Details: ${basicError.message || 'Unknown camera error'}`);
+                    }
+                }
+                
+                await webcam.play();
+                
+                // Validate webcam
+                if (!webcam.canvas || webcam.canvas.width === 0 || webcam.canvas.height === 0) {
+                    throw new Error('Camera stream is not available or has invalid dimensions');
+                }
+                
+                isWebcamReady = true;
+                
+                // Add webcam to page
+                const webcamContainer = document.getElementById("webcam-container");
+                webcamContainer.appendChild(webcam.canvas);
+                
+                showStatus('🎉 Camera ready! Point at waste items to classify them.', 'success');
+                
+                // Start prediction loop
+                requestAnimationFrame(cameraLoop);
+                
+            } catch (error) {
+                console.error('Camera setup error:', error);
+                
+                currentMode = 'none';
+                isWebcamReady = false;
+                
+                let errorMessage = '📷 Camera setup failed. ';
+                if (error.message.includes('denied') || error.message.includes('permission')) {
+                    errorMessage += 'Camera permission denied. Please allow camera access in your browser settings.';
+                    document.getElementById('camera-help').style.display = 'block';
+                } else if (error.message.includes('not available') || error.message.includes('NotFoundError')) {
+                    errorMessage += 'No camera found. Please use "Upload Image" instead.';
+                } else {
+                    errorMessage += `Please try "Upload Image" instead. Error: ${error.message || 'Unknown error'}`;
+                }
+                
+                showStatus(errorMessage, 'error');
+                document.getElementById('camera-help').style.display = 'block';
+            }
+        }
+        
+        // Handle file selection
+        async function handleFileSelect(event) {
+            if (!isModelLoaded) {
+                await loadModel();
+                if (!isModelLoaded) return;
+            }
+            
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            try {
+                // Stop camera if running
+                if (webcam && currentMode === 'camera') {
+                    webcam.stop();
+                    const webcamContainer = document.getElementById("webcam-container");
+                    if (webcam.canvas && webcam.canvas.parentNode) {
+                        webcam.canvas.parentNode.removeChild(webcam.canvas);
+                    }
+                }
+                
+                currentMode = 'image';
+                isWebcamReady = false;
+                
+                // Hide camera help
+                document.getElementById('camera-help').style.display = 'none';
+                
+                // Create image element
+                const imagePreview = document.getElementById('image-preview');
+                const reader = new FileReader();
+                
+                reader.onload = async function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    
+                    // Wait for image to load
+                    imagePreview.onload = async function() {
+                        showStatus('🔍 Analyzing image...', 'loading');
+                        await predictImage(imagePreview);
+                        showStatus('✅ Analysis complete!', 'success');
+                    };
+                };
+                
+                reader.readAsDataURL(file);
+                
+            } catch (error) {
+                console.error('File processing error:', error);
+                showStatus('❌ Failed to process image. Please try another image.', 'error');
+            }
+        }
+        
+        // Setup prediction display
+        function setupPredictionDisplay() {
+            labelContainer = document.getElementById("label-container");
+            labelContainer.innerHTML = '';
+            
+            for (let i = 0; i < Math.min(maxPredictions, 3); i++) {
+                const category = wasteCategories[i] || { 
+                    name: `Category ${i + 1}`, 
+                    class: 'unknown', 
+                    emoji: '❓', 
+                    color: '#999' 
+                };
+                
+                const div = document.createElement("div");
+                div.className = `prediction-item ${category.class}`;
+                div.innerHTML = `
+                    <div class="prediction-content">
+                        <span class="prediction-name">${category.name}</span>
+                        <span class="prediction-emoji">${category.emoji}</span>
+                    </div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill ${category.class}" style="width: 0%"></div>
+                    </div>
+                    <div class="confidence-text">0% confidence</div>
+                `;
+                labelContainer.appendChild(div);
+            }
+        }
+        
+        // Camera prediction loop
+        async function cameraLoop() {
+            if (!isModelLoaded || !isWebcamReady || !webcam || currentMode !== 'camera') return;
+            
+            try {
+                webcam.update();
+                if (!isPredicting) {
+                    isPredicting = true;
+                    await predictWebcam();
+                    isPredicting = false;
+                }
+            } catch (error) {
+                console.error('Camera prediction error:', error);
+            }
+            
+            requestAnimationFrame(cameraLoop);
+        }
+        
+        // Predict from webcam
+        async function predictWebcam() {
+            if (!webcam || !webcam.canvas) return;
+            
+            try {
+                const predictions = await model.predict(webcam.canvas);
+                displayPredictions(predictions);
+            } catch (error) {
+                console.error('Webcam prediction error:', error);
+            }
+        }
+        
+        // Predict from image
+        async function predictImage(imageElement) {
+            try {
+                const predictions = await model.predict(imageElement);
+                displayPredictions(predictions);
+            } catch (error) {
+                console.error('Image prediction error:', error);
+                showStatus('❌ Failed to analyze image. Please try another image.', 'error');
+            }
+        }
+        
+        // Display predictions
+        function displayPredictions(predictions) {
+            try {
+                const predictionArray = Array.from(predictions).map((pred, index) => ({
+                    className: wasteCategories[index]?.name || `Category ${index + 1}`,
+                    probability: typeof pred === 'object' ? pred.probability : pred,
+                    index: index
+                }));
+                
+                const sortedPredictions = predictionArray
+                    .slice(0, 3)
+                    .sort((a, b) => b.probability - a.probability);
+                
+                for (let i = 0; i < Math.min(sortedPredictions.length, 3); i++) {
+                    const prediction = sortedPredictions[i];
+                    const percentage = (prediction.probability * 100).toFixed(1);
+                    const confidence = prediction.probability > 0.7 ? 'High' : 
+                                    prediction.probability > 0.4 ? 'Medium' : 'Low';
+                    const category = wasteCategories[prediction.index] || wasteCategories[i];
+                    
+                    const predictionElement = labelContainer.childNodes[i];
+                    if (predictionElement) {
+                        const nameElement = predictionElement.querySelector('.prediction-name');
+                        const emojiElement = predictionElement.querySelector('.prediction-emoji');
+                        const fillElement = predictionElement.querySelector('.confidence-fill');
+                        const textElement = predictionElement.querySelector('.confidence-text');
+                        
+                        if (nameElement) nameElement.textContent = prediction.className;
+                        if (emojiElement) emojiElement.textContent = category.emoji;
+                        if (fillElement) {
+                            fillElement.style.width = `${percentage}%`;
+                            fillElement.className = `confidence-fill ${category.class}`;
+                        }
+                        if (textElement) {
+                            textElement.textContent = `${percentage}% confidence (${confidence})`;
+                        }
+                        
+                        if (i === 0 && prediction.probability > 0.5) {
+                            predictionElement.classList.add('top-prediction');
+                        } else {
+                            predictionElement.classList.remove('top-prediction');
+                        }
+                        
+                        predictionElement.className = `prediction-item ${category.class}${i === 0 && prediction.probability > 0.5 ? ' top-prediction' : ''}`;
+                    }
+                }
+                
+                // Dispose predictions
+                if (Array.isArray(predictions)) {
+                    predictions.forEach(pred => {
+                        if (pred && typeof pred === 'object' && pred.dispose) {
+                            pred.dispose();
+                        }
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Display predictions error:', error);
+            }
+        }
+        
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const fadeElements = document.querySelectorAll('.fade-in');
+            fadeElements.forEach(el => observer.observe(el));
+            
+            // Auto-load model
+            loadModel();
+        });
+        
+        // Performance monitoring
+        if (typeof tf !== 'undefined') {
+            tf.enableProdMode();
+        }
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (webcam) {
+                webcam.stop();
+            }
+            if (model) {
+                model.dispose();
+            }
+        });
+    </script>
+</body>
+</html>
